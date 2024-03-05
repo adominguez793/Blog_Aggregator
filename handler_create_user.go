@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (cfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request) {
+func (cfg *apiConfig) handlerUsersCreate(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
 		Name string `json:"name"`
 	}
@@ -28,8 +28,9 @@ func (cfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	ctx := r.Context()
-	user, err := cfg.DB.CreateUser(ctx, database.CreateUserParams{
+	// encode(sha256(random()::text::bytea), 'hex')
+
+	user, err := cfg.DB.CreateUser(r.Context(), database.CreateUserParams{
 		ID:        userID,
 		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),

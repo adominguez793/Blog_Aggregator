@@ -24,11 +24,18 @@ func main() {
 		log.Fatalf("Failed to load .env file: %s\n", err)
 	}
 	PORT := os.Getenv("PORT")
+	if PORT == "" {
+		log.Fatalf("PORT is shite.")
+	}
 
-	dbURL := os.Getenv("CONN")
+	dbURL := os.Getenv("DATABASE_URL")
+	if dbURL == "" {
+		log.Fatalf("Database URL is shite.")
+	}
+
 	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
-		log.Fatalf("Failed to open database URL")
+		log.Fatalf("Failed to open database URL: %s", err)
 	}
 
 	dbQueries := database.New(db)
@@ -48,9 +55,9 @@ func main() {
 	}))
 
 	v1Router := chi.NewRouter()
-	v1Router.Get("/readiness", handlerReadiness)
+	v1Router.Get("/healthz", handlerReadiness)
 	v1Router.Get("/err", handlerError)
-	v1Router.Post("/users", apiCfg.handlerCreateUser)
+	v1Router.Post("/users", apiCfg.handlerUsersCreate)
 
 	router.Mount("/v1", v1Router)
 
