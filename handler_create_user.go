@@ -28,8 +28,6 @@ func (cfg *apiConfig) handlerUsersCreate(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// encode(sha256(random()::text::bytea), 'hex')
-
 	user, err := cfg.DB.CreateUser(r.Context(), database.CreateUserParams{
 		ID:        userID,
 		CreatedAt: time.Now().UTC(),
