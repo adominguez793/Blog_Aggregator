@@ -22,14 +22,8 @@ func (cfg *apiConfig) handlerUsersCreate(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	userID, err := uuid.NewUUID()
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Failed to generate new UUID")
-		return
-	}
-
 	user, err := cfg.DB.CreateUser(r.Context(), database.CreateUserParams{
-		ID:        userID,
+		ID:        uuid.New(),
 		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),
 		Name:      params.Name,
