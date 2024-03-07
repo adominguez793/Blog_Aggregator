@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -25,12 +26,13 @@ func (cfg *apiConfig) handlerFeedsCreate(w http.ResponseWriter, r *http.Request,
 	}
 
 	feed, err := cfg.DB.CreateFeed(r.Context(), database.CreateFeedParams{
-		ID:        uuid.New(),
-		CreatedAt: time.Now().UTC(),
-		UpdatedAt: time.Now().UTC(),
-		Name:      params.Name,
-		Url:       params.URL,
-		UserID:    user.ID,
+		ID:            uuid.New(),
+		CreatedAt:     time.Now().UTC(),
+		UpdatedAt:     time.Now().UTC(),
+		Name:          params.Name,
+		Url:           params.URL,
+		UserID:        user.ID,
+		LastFetchedAt: sql.NullTime{Time: time.Now().UTC(), Valid: true},
 	})
 	if err != nil {
 		msg := fmt.Sprintf("Failed to create feed: %s\n", err)
@@ -69,22 +71,24 @@ func (cfg *apiConfig) handlerFeedsGet(w http.ResponseWriter, r *http.Request) {
 }
 
 type Feed struct {
-	ID        uuid.UUID `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	Name      string    `json:"name"`
-	Url       string    `json:"url"`
-	UserID    uuid.UUID `json:"user_id"`
+	ID            uuid.UUID  `json:"id"`
+	CreatedAt     time.Time  `json:"created_at"`
+	UpdatedAt     time.Time  `json:"updated_at"`
+	Name          string     `json:"name"`
+	Url           string     `json:"url"`
+	UserID        uuid.UUID  `json:"user_id"`
+	LastFetchedAt *time.Time `json:"last_fetched_at"`
 }
 
 func databaseFeedToFeed(feed database.Feed) Feed {
 	return Feed{
-		ID:        feed.ID,
-		CreatedAt: feed.CreatedAt,
-		UpdatedAt: feed.UpdatedAt,
-		Name:      feed.Name,
-		Url:       feed.Url,
-		UserID:    feed.UserID,
+		ID:            feed.ID,
+		CreatedAt:     feed.CreatedAt,
+		UpdatedAt:     feed.UpdatedAt,
+		Name:          feed.Name,
+		Url:           feed.Url,
+		UserID:        feed.UserID,
+		LastFetchedAt: nullTimeToPtrTime(feed.LastFetchedAt),
 	}
 }
 
@@ -94,4 +98,11 @@ func databaseFeedsToFeeds(feeds []database.Feed) []Feed {
 		cleanFeeds[i] = databaseFeedToFeed(feed)
 	}
 	return cleanFeeds
+}
+
+func nullTimeToPtrTime(nullTime sql.NullTime) *time.Time {
+	if nullTime.Valid {
+		return &nullTime.Time
+	}
+	return nil
 }
