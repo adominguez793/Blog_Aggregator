@@ -32,7 +32,7 @@ func (cfg *apiConfig) handlerFeedsCreate(w http.ResponseWriter, r *http.Request,
 		Name:          params.Name,
 		Url:           params.URL,
 		UserID:        user.ID,
-		LastFetchedAt: sql.NullTime{Time: time.Now().UTC(), Valid: true},
+		LastFetchedAt: sql.NullTime{Valid: false},
 	})
 	if err != nil {
 		msg := fmt.Sprintf("Failed to create feed: %s\n", err)

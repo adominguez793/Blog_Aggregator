@@ -7,25 +7,28 @@ package database
 
 import (
 	"context"
-	"database/sql"
-	"time"
 
 	"github.com/google/uuid"
 )
 
-const markFeedFetched = `-- name: MarkFeedFetched :exec
+const markFeedFetched = `-- name: MarkFeedFetched :one
 UPDATE feeds
-    SET last_fetched_at = $1, updated_at = $2
-    WHERE id = $3
+SET last_fetched_at = NOW(), updated_at = NOW()
+WHERE id = $1
+RETURNING id, created_at, updated_at, name, url, user_id, last_fetched_at
 `
 
-type MarkFeedFetchedParams struct {
-	LastFetchedAt sql.NullTime
-	UpdatedAt     time.Time
-	ID            uuid.UUID
-}
-
-func (q *Queries) MarkFeedFetched(ctx context.Context, arg MarkFeedFetchedParams) error {
-	_, err := q.db.ExecContext(ctx, markFeedFetched, arg.LastFetchedAt, arg.UpdatedAt, arg.ID)
-	return err
+func (q *Queries) MarkFeedFetched(ctx context.Context, id uuid.UUID) (Feed, error) {
+	row := q.db.QueryRowContext(ctx, markFeedFetched, id)
+	var i Feed
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Name,
+		&i.Url,
+		&i.UserID,
+		&i.LastFetchedAt,
+	)
+	return i, err
 }

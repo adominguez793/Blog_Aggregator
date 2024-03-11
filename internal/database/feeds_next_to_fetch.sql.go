@@ -10,11 +10,13 @@ import (
 )
 
 const getNextFeedsToFetch = `-- name: GetNextFeedsToFetch :many
-SELECT id, created_at, updated_at, name, url, user_id, last_fetched_at FROM feeds ORDER BY last_fetched_at ASC NULLS FIRST
+SELECT id, created_at, updated_at, name, url, user_id, last_fetched_at FROM feeds 
+ORDER BY last_fetched_at ASC NULLS FIRST
+LIMIT $1
 `
 
-func (q *Queries) GetNextFeedsToFetch(ctx context.Context) ([]Feed, error) {
-	rows, err := q.db.QueryContext(ctx, getNextFeedsToFetch)
+func (q *Queries) GetNextFeedsToFetch(ctx context.Context, limit int32) ([]Feed, error) {
+	rows, err := q.db.QueryContext(ctx, getNextFeedsToFetch, limit)
 	if err != nil {
 		return nil, err
 	}
